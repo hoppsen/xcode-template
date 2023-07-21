@@ -1,0 +1,59 @@
+ruby_version '3.0.0'
+fastlane_version '2.214.0'
+default_platform(:ios)
+
+import 'Setupfile'
+import 'Definitionsfile'
+
+PROJECT = 'Template.xcodeproj'
+SCHEME = 'Template'
+
+platform :ios do
+  before_all do |lane|
+    ensure_bundle_exec
+  end
+
+  error do |lane, exception, options|
+    UI.error("Options: #{options.inspect}")
+  end
+
+  # MARK: - Lint and Format
+
+  desc 'Runs SwiftLint'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane lint\n```"
+  lane :lint do
+    swiftlint(
+      mode: :lint, # :autocorrect does not work for all warnings
+      executable: 'mint run swiftlint',
+      config_file: '.swiftlint.yml',
+      strict: true,
+      quiet: true,
+    )
+  end
+
+  desc 'Runs SwiftFormat'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane format\n```"
+  desc '#### Options:'
+  desc " * **`lint_only`**: Returns an error if formatting is needed, instead of actually changing it. Defaults to 'false'"
+  lane :format do |options|
+    swiftformat(
+      executable: 'mint run swiftformat',
+      config: '.swiftformat',
+      dryrun: false,
+      lint: options[:lint_only] || false,
+    )
+  end
+
+  # MARK: - Assets
+
+  desc 'Generates the Asset enum out of Assets.xcassets. For IMAGES only!'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane assets\n```"
+  lane :assets do
+    if UI.confirm('You are about to generate the Assets.swift file. Remember that this is for IMAGES ONLY! Icons should be added as custom SF symbols in Symbols.xcassets. Are you sure you added only images to Assets.xcassets?')
+      generate_assets_enum
+    end
+  end
+end

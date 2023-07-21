@@ -1,0 +1,3 @@
+trailing_commas true
+quote_style :single
+includes [fastlane/Fastfile,fastlane/Setupfile,fastlane/Definitionsfile]

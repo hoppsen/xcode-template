@@ -1,0 +1,36 @@
+##### General #####
+
+def is_installed?(tool)
+  begin
+    sh("which #{tool}")
+    return true
+  rescue
+    UI.error("'#{tool}' not found!\nPlease make sure '#{tool}' exists.")
+    return false
+  end
+end
+
+def file_contains_regexp?(filename, regexp)
+  File.foreach(filename) do |line|
+    return true if line =~ regexp
+  end
+  return false
+end
+
+##### SwiftGen #####
+
+def generate_localization_enum
+  swiftGen = File.expand_path('../fastlane/tools/SwiftGen/bin/swiftgen')
+
+  strings = "#{LOCALIZATION_PATH}/en.lproj"
+  output = "#{LOCALIZATION_PATH}/L10n.swift"
+  sh("#{swiftGen} run strings #{strings} --output #{output} --templateName flat-swift5") if is_installed?(swiftGen)
+end
+
+def generate_assets_enum
+  swiftGen = File.expand_path('../fastlane/tools/SwiftGen/bin/swiftgen')
+
+  xcassets = "#{ASSETS_PATH}/Assets.xcassets"
+  output = "#{ASSETS_PATH}/Assets.swift"
+  sh("#{swiftGen} run xcassets #{xcassets} --output #{output} --templateName swift5") if is_installed?(swiftGen)
+end

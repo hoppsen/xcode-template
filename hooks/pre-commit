@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# echo "[PRE-COMMIT] Format Ruby files"
+# bundle exec rufo .
+
+FILES_REFORMATTED=0
+
+echo "[PRE-COMMIT] Linting files"
+GIT_DIFF=$(git diff --diff-filter=d --staged --name-only)
+
+while read FILE; do
+    if [[ "$FILE" == *"Template.xcodeproj/project.pbxproj"* ]]; then
+        BEFORE_PROJECT_FILE_CHECKSUM=$(cat "Template.xcodeproj/project.pbxproj" | shasum)
+
+        perl ./scripts/sort-xcode-project-file.pl ./Template.xcodeproj
+
+        AFTER_PROJECT_FILE_CHECKSUM=$(cat "Template.xcodeproj/project.pbxproj" | shasum)
+
+        if [ "$BEFORE_PROJECT_FILE_CHECKSUM" != "$AFTER_PROJECT_FILE_CHECKSUM" ]; then
+            echo "[PRE-COMMIT] [Warning] Project file has been sorted properly. Please review and commit again"
+            git add "Template.xcodeproj/project.pbxproj"
+        fi
+    fi
+
+    if [[ "$FILE" == *\.swift ]]; then
+        # export PATH to find mint
+        export PATH="/opt/homebrew/bin:$PATH"
+
+        BEFORE_SWIFTFORMAT_CHECKSUM=$(cat "$FILE" | shasum)
+        mint run swiftformat "${FILE}" --config .swiftformat &> /dev/null
+        AFTER_SWIFTFORMAT_CHECKSUM=$(cat "$FILE" | shasum)
+
+        if [[ "$BEFORE_SWIFTFORMAT_CHECKSUM" != "$AFTER_SWIFTFORMAT_CHECKSUM" ]]; then
+            echo "[PRE-COMMIT] [Warning] $FILE reformatted automatically. Please review, stage and commit"
+            ((FILES_REFORMATTED++))
+        fi
+    fi  
+done <<< "$GIT_DIFF"
+
+if [[ "$FILES_REFORMATTED" -gt 0 ]]; then
+	exit 1
+fi
+
+exit 0

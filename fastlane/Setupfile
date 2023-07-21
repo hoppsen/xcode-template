@@ -1,0 +1,135 @@
+def setup_git
+  UI.header('Step: setup_git')
+  gitConfigPath = '../.gitconfig'
+  gitPath = '../.git'
+  gitHooksPath = '../.git/hooks'
+
+  sh('git init ../') unless File.exists?(File.expand_path(gitPath))
+  FileUtils.mkdir_p(gitHooksPath) unless File.exists?(File.expand_path(gitHooksPath))
+
+  sh("git config include.path #{gitConfigPath}")
+
+  Dir['../hooks/*'].each do |hook|
+    `ln -s -f \"#{File.expand_path(hook)}\" \"#{File.expand_path(gitHooksPath)}\"`
+    UI.message("Added \"#{hook}\"")
+  end
+
+  UI.message('Your git setup looks good ✅')
+end
+
+def setup_ssh
+  UI.header('Step: setup_ssh')
+  sshConfig = '~/.ssh/config'
+  sshKnownHosts = '~/.ssh/known_hosts'
+  filename = "~/.ssh/#{ENV['USER']}-GitHub"
+  unless File.exist?(File.expand_path(filename))
+    config = "Host *\n\t" \
+    "IdentitiesOnly yes\n\t" \
+    "ForwardAgent yes\n\t" \
+    "UseKeychain yes\n\t" \
+    "AddKeysToAgent yes\n\t" \
+    "IdentityFile #{filename}\n"
+
+    sh("ssh-keygen -t ecdsa -f #{filename} -C #{ENV['USER']}@hoppsen.com")
+    sh("ssh-add -K #{filename}")
+    sh("ssh-keyscan -H github.com >> #{sshKnownHosts}", log: false)
+    sh("echo \"#{config}\" >> #{sshConfig}", log: false)
+    sh("pbcopy < #{filename}.pub", log: false)
+
+    UI.important('Read the following steps carefully to add your SSH key to GitHub:')
+    UI.important('Press any key to continue...')
+    STDIN.getch
+
+    UI.important('1.) Go to your GitHub SSH key settings')
+    STDIN.getch
+
+    UI.important("2.) Hit \"New SSH key\"")
+    STDIN.getch
+
+    UI.important('3.) Paste your public key (it is already in your pasteboard)')
+    STDIN.getch
+
+    UI.important("4.) Save your ssh key to your account with \"Add SSH key\"")
+    STDIN.getch
+
+    UI.important('We will open your GitHub SSH key settings for you now. Press any key to continue...')
+    STDIN.getch
+
+    sh('open https://github.com/settings/keys')
+
+    remote = sh('git remote -v')
+    sh('git remote add origin git@github.com:hoppsen/xcode-template.git') if remote.empty?
+    sh('git remote set-url origin git@github.com:hoppsen/xcode-template.git') unless remote.empty?
+    UI.success("Successfully setup ssh, we updated your git remote 'origin' for you to use ssh 🔐")
+  else
+    UI.message('Your ssh setup looks good ✅')
+  end
+end
+
+def setup_brew
+  UI.header('Step: setup_brew')
+
+  begin
+    sh('which brew')
+  rescue
+    sh('open https://brew.sh')
+    UI.user_error!('You need to install homebrew first! Please follow the install instructions on the just opened webpage.')
+  end
+
+  sh('brew install python') # macOS 12.3 doesn't come with python pre-installed :/
+
+  sh('brew install mint')
+  sh('mint bootstrap --mintfile ../Mintfile')
+end
+
+def disable_coretelephony_logging
+  UI.header('Step: disable_coretelephony_logging')
+
+  begin
+    sh("xcrun simctl spawn booted log config --mode \"level:off\"  --subsystem com.apple.CoreTelephony")
+  rescue => ex
+    UI.important("Skipping...")
+  end
+end
+
+def clean_provisioning_profiles(clean)
+  UI.header('Step: clean_provisioning_profiles')
+
+  provisioningProfiles = '~/Library/MobileDevice/Provisioning\ Profiles'
+  sh("rm -rf #{provisioningProfiles}") if clean
+end
+
+platform :ios do
+  desc 'Run this to setup your development environment'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane setup\n```"
+  desc '#### Options:'
+  desc ' * **`ssh`**: Set to `true`, if you are currently not using SSH. Defaults to `false`'
+  desc ' * **`clean`**: Set to `true`, if you want to clean all provisioning profiles. Defaults to `false`'
+  lane :setup do |options|
+    setup_git
+
+    if options[:ssh] || false
+      setup_ssh
+    end
+
+    setup_brew
+
+    disable_coretelephony_logging
+
+    clean = options[:clean] || false
+    clean_provisioning_profiles(clean)
+  end
+
+  desc 'Updates the status bar of all booted simulators.'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane simulator\n```"
+  desc '#### Options:'
+  desc ' * **`devices`**: Array of simulators to update.'
+  lane :simulator do |options|
+    devices = options[:devices] || ['iPhone 13 Pro Max', 'iPhone 8 Plus', 'iPad Pro (12.9-inch) (5th generation)', 'iPad Pro (12.9-inch) (2nd generation)', 'booted']
+    for device in devices
+      sh("xcrun simctl status_bar \"#{device}\" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --operatorName 'Hoppsen' --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100")
+    end
+  end
+end
