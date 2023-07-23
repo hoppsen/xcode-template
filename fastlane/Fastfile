@@ -7,6 +7,7 @@ import 'Definitionsfile'
 
 PROJECT = 'Template.xcodeproj'
 SCHEME = 'Template'
+ASSETS_PATH = File.expand_path('../Template/Assets')
 
 platform :ios do
   before_all do |lane|
