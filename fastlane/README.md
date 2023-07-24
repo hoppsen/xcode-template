@@ -35,6 +35,32 @@ bundle exec fastlane setup
 
  * **`clean`**: Set to `true`, if you want to clean all provisioning profiles. Defaults to `false`
 
+### ios rename
+
+```sh
+[bundle exec] fastlane ios rename
+```
+
+Renames the project including all occurences of `Template` to a new name of your choice.
+
+#### Example:
+
+```
+bundle exec fastlane rename new_name:Tahdith
+```
+
+#### Options:
+
+ * **`new_name`**: New project name of your choice.
+
+### ios rename2
+
+```sh
+[bundle exec] fastlane ios rename2
+```
+
+
+
 ### ios simulator
 
 ```sh

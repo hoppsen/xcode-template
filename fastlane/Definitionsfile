@@ -34,3 +34,20 @@ def generate_assets_enum
   output = "#{ASSETS_PATH}/Assets.swift"
   sh("#{swiftGen} run xcassets #{xcassets} --output #{output} --templateName swift5") if is_installed?(swiftGen)
 end
+
+##### Rename #####
+
+def rename_project(oldName, newName)
+  # Rename folders and files
+  sh("mv ../#{oldName} ../#{newName}")
+  sh("mv ../#{oldName}.xcodeproj ../#{newName}.xcodeproj")
+  sh("mv ../#{newName}/#{oldName}.entitlements ../#{newName}/#{newName}.entitlements")
+  sh("mv ../#{newName}/#{oldName}App.swift ../#{newName}/#{newName}App.swift")
+
+  # Search and Replace occurences of <oldName>
+  sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../README.md")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/Fastfile")
+  sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../hooks/pre-commit")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/project.pbxproj")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}/Screens/AboutView.swift")
+end

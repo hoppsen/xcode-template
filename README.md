@@ -52,6 +52,16 @@ My favorite Xcode project structure, plus SwiftLint and SwiftFormat pre-configur
     bundle exec fastlane setup
     ```
 
-8. Open `Template.xcodeproj`
+8. (Optional) Rename the whole project to a name of your choice.
 
-9. Start coding :rocket:
+    ```sh
+    bundle exec fastlane rename new_name:Hoppsen
+    ```
+
+9. Open `Template.xcodeproj` (or new name if renamed before)
+
+10. Start coding :rocket:
+
+---
+
+Project created with template from [https://github.com/hoppsen/xcode-template](https://github.com/hoppsen/xcode-template).

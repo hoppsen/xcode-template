@@ -121,6 +121,15 @@ platform :ios do
     clean_provisioning_profiles(clean)
   end
 
+  desc 'Renames the project including all occurences of `Template` to a new name of your choice.'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane rename new_name:Tahdith\n```"
+  desc '#### Options:'
+  desc ' * **`new_name`**: New project name of your choice.'
+  lane :rename do |options|
+    rename_project("Template", options[:new_name])
+  end
+
   desc 'Updates the status bar of all booted simulators.'
   desc '#### Example:'
   desc "```\nbundle exec fastlane simulator\n```"
