@@ -363,7 +363,7 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"$(SRCROOT)/build/build_phases/Template_swiftlint.xcfilelist",
+				"$(SRCROOT)/.build/build_phases/Template_swiftlint.xcfilelist",
 			);
 			inputPaths = (
 			);
@@ -371,11 +371,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/build/build_phases/Template_swiftlint_static_output",
+				"$(SRCROOT)/.build/build_phases/Template_swiftlint_static_output",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Don't run this during index builds \nif [ $ACTION = \"indexbuild\" ]; then echo 'Index build detected.'; exit 0; fi\n\n# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\n# Don't run during SwiftUI previews, to prevent `Preview paused`.\nif [ $ENABLE_PREVIEWS = 'YES' ]; then echo 'Preview detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$SRCROOT|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
+			shellScript = "# Don't run this during index builds \nif [ $ACTION = \"indexbuild\" ]; then echo 'Index build detected.'; exit 0; fi\n\n# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\n# Don't run during SwiftUI previews, to prevent `Preview paused`.\nif [ $ENABLE_PREVIEWS = 'YES' ]; then echo 'Preview detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$(SRCROOT)|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
 		};
 		1F65A1FD2A7169CA00FBA141 /* SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -383,7 +383,7 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"$(SRCROOT)/build/build_phases/TemplateTests_swiftlint.xcfilelist",
+				"$(SRCROOT)/.build/build_phases/TemplateTests_swiftlint.xcfilelist",
 			);
 			inputPaths = (
 			);
@@ -391,11 +391,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/build/build_phases/TemplateTests_swiftlint_static_output",
+				"$(SRCROOT)/.build/build_phases/TemplateTests_swiftlint_static_output",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$SRCROOT|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
+			shellScript = "# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$(SRCROOT)|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
 		};
 		1F65A1FE2A7169D700FBA141 /* SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -403,7 +403,7 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"$(SRCROOT)/build/build_phases/TemplateUITests_swiftlint.xcfilelist",
+				"$(SRCROOT)/.build/build_phases/TemplateUITests_swiftlint.xcfilelist",
 			);
 			inputPaths = (
 			);
@@ -411,11 +411,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/build/build_phases/TemplateUITests_swiftlint_static_output",
+				"$(SRCROOT)/.build/build_phases/TemplateUITests_swiftlint_static_output",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$SRCROOT|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
+			shellScript = "# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$(SRCROOT)|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
 		};
 		1F9E0E912A717167006CD009 /* Gather Open Source Licenses */ = {
 			isa = PBXShellScriptBuildPhase;
