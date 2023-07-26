@@ -47,6 +47,13 @@ struct SettingsRow: View {
 
 struct SettingsRow_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsRow(title: "Preview", subtitle: "Preview")
+        Form {
+            SettingsRow(title: "Preview")
+            SettingsRow(title: "Preview", showArrow: true)
+            SettingsRow(title: "Preview", subtitle: "Preview")
+            SettingsRow(title: "Preview", subtitle: "Preview", showArrow: true)
+            SettingsRow(systemName: "globe", title: "Preview", subtitle: "Preview")
+            SettingsRow(systemName: "globe", title: "Preview", subtitle: "Preview", showArrow: true)
+        }
     }
 }
