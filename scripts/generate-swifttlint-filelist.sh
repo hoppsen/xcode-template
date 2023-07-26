@@ -41,8 +41,8 @@ echo "Generating new source file list"
 # List of folders in which we generate filelist for SwiftLint (e.g. only .swift)
 swiftlint_dirs=(
     'Template'
-    # 'TemplateTests'
-    # 'TemplateUITests'
+    'TemplateTests'
+    'TemplateUITests'
 )
 
 for dir in "${swiftlint_dirs[@]}"; do
