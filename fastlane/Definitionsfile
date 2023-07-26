@@ -20,19 +20,15 @@ end
 ##### SwiftGen #####
 
 def generate_localization_enum
-  swiftGen = File.expand_path('../fastlane/tools/SwiftGen/bin/swiftgen')
-
   strings = "#{LOCALIZATION_PATH}/en.lproj"
   output = "#{LOCALIZATION_PATH}/L10n.swift"
-  sh("#{swiftGen} run strings #{strings} --output #{output} --templateName flat-swift5") if is_installed?(swiftGen)
+  sh("mint run swiftgen run strings #{strings} --output #{output} --templateName flat-swift5")
 end
 
 def generate_assets_enum
-  swiftGen = File.expand_path('../fastlane/tools/SwiftGen/bin/swiftgen')
-
   xcassets = "#{ASSETS_PATH}/Assets.xcassets"
   output = "#{ASSETS_PATH}/Assets.swift"
-  sh("#{swiftGen} run xcassets #{xcassets} --output #{output} --templateName swift5") if is_installed?(swiftGen)
+  sh("mint run swiftgen run xcassets #{xcassets} --output #{output} --templateName swift5")
 end
 
 ##### Rename #####

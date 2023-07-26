@@ -53,14 +53,6 @@ bundle exec fastlane rename new_name:Tahdith
 
  * **`new_name`**: New project name of your choice.
 
-### ios rename2
-
-```sh
-[bundle exec] fastlane ios rename2
-```
-
-
-
 ### ios simulator
 
 ```sh
