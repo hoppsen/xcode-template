@@ -35,15 +35,37 @@ end
 
 def rename_project(oldName, newName)
   # Rename folders and files
-  sh("mv ../#{oldName} ../#{newName}")
+  # Project file
+  sh("mv ../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{oldName}.xcscheme ../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
   sh("mv ../#{oldName}.xcodeproj ../#{newName}.xcodeproj")
+
+  ## Template
+  sh("cp -pRP ../#{oldName} ../#{newName}")
   sh("mv ../#{newName}/#{oldName}.entitlements ../#{newName}/#{newName}.entitlements")
   sh("mv ../#{newName}/#{oldName}App.swift ../#{newName}/#{newName}App.swift")
+  sh("rm -rf ../#{oldName}")
+
+  ## TemplateTests
+  sh("cp -pRP ../#{oldName}Tests ../#{newName}Tests")
+  sh("mv ../#{newName}Tests/#{oldName}Tests.swift ../#{newName}Tests/#{newName}Tests.swift")
+  sh("rm -rf ../#{oldName}Tests")
+
+  ## TemplateUITests
+  sh("cp -pRP ../#{oldName}UITests ../#{newName}UITests")
+  sh("mv ../#{newName}UITests/#{oldName}UITests.swift ../#{newName}UITests/#{newName}UITests.swift")
+  sh("mv ../#{newName}UITests/#{oldName}UITestsLaunchTests.swift ../#{newName}UITests/#{newName}UITestsLaunchTests.swift")
+  sh("rm -rf ../#{oldName}UITests")
 
   # Search and Replace occurences of <oldName>
   sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../README.md")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/Fastfile")
   sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../hooks/pre-commit")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../scripts/generate-swifttlint-filelist.sh") # <- TYPO
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/project.pbxproj")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}/Screens/AboutView.swift")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
+
+  sh("find ../#{newName}* -name '*.swift' -print0 | xargs -0 sed -i '' 's/#{oldName}/#{newName}/g'")
+
+  # Remove build phases results to prevent compile issues with SwiftLint file lists
+  sh("rm -rf ../.build/build_phases")
 end
