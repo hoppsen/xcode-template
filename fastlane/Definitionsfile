@@ -60,7 +60,7 @@ def rename_project(oldName, newName)
   sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../README.md")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/Fastfile")
   sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../hooks/pre-commit")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../scripts/generate-swifttlint-filelist.sh") # <- TYPO
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../scripts/generate-swiftlint-filelist.sh")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/project.pbxproj")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
 
