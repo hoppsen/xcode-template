@@ -4,8 +4,8 @@ def setup_git
   gitPath = '../.git'
   gitHooksPath = '../.git/hooks'
 
-  sh('git init ../') unless File.exists?(File.expand_path(gitPath))
-  FileUtils.mkdir_p(gitHooksPath) unless File.exists?(File.expand_path(gitHooksPath))
+  sh('git init ../') unless File.exist?(File.expand_path(gitPath))
+  FileUtils.mkdir_p(gitHooksPath) unless File.exist?(File.expand_path(gitHooksPath))
 
   sh("git config include.path #{gitConfigPath}")
 
@@ -82,16 +82,6 @@ def setup_brew
   sh('mint bootstrap --mintfile ../Mintfile')
 end
 
-def disable_coretelephony_logging
-  UI.header('Step: disable_coretelephony_logging')
-
-  begin
-    sh("xcrun simctl spawn booted log config --mode \"level:off\"  --subsystem com.apple.CoreTelephony")
-  rescue => ex
-    UI.important("Skipping...")
-  end
-end
-
 def clean_provisioning_profiles(clean)
   UI.header('Step: clean_provisioning_profiles')
 
@@ -114,8 +104,6 @@ platform :ios do
     end
 
     setup_brew
-
-    disable_coretelephony_logging
 
     clean = options[:clean] || false
     clean_provisioning_profiles(clean)
