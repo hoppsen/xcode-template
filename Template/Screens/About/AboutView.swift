@@ -18,13 +18,13 @@ struct AboutView: View {
             .listRowBackground(Color.clear)
 
             Section {
-                SettingsRow(title: "Website", subtitle: URL.website?.host, showArrow: true)
+                TitleSubtitleRow(title: "Website", subtitle: URL.website?.host, showArrow: true)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         URL.website?.open()
                     }
 
-                SettingsRow(title: "Twitter", subtitle: "@\(MainConstants.twitterUsername)", showArrow: true)
+                TitleSubtitleRow(title: "Twitter", subtitle: "@\(MainConstants.twitterUsername)", showArrow: true)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         viewModel.openTwitter()
@@ -32,19 +32,19 @@ struct AboutView: View {
             }
 
             Section {
-                SettingsRow(title: "Open Source Licences", showArrow: true)
+                TitleSubtitleRow(title: "Open Source Licences", showArrow: true)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         UIApplication.openSystemSettings()
                     }
 
-                SettingsRow(title: "Terms of Use", showArrow: true)
+                TitleSubtitleRow(title: "Terms of Use", showArrow: true)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         viewModel.activeSheet = .termsOfUse
                     }
 
-                SettingsRow(title: "Privacy Policy", showArrow: true)
+                TitleSubtitleRow(title: "Privacy Policy", showArrow: true)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         viewModel.activeSheet = .privacyPolicy
@@ -52,7 +52,7 @@ struct AboutView: View {
             }
 
             Section {
-                SettingsRow(title: "Share Template", showArrow: true)
+                TitleSubtitleRow(title: "Share Template", showArrow: true)
                     .foregroundColor(.accentColor)
                     .contentShape(Rectangle())
                     .onTapGesture {

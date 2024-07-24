@@ -1,5 +1,5 @@
 //
-//  SettingsRow.swift
+//  TitleSubtitleRow.swift
 //  Template
 //
 //  Created by Marcel Hoppe on 21.07.23.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SettingsRow: View {
+struct TitleSubtitleRow: View {
     let systemName: String?
     let title: String
     let subtitle: String?
@@ -45,15 +45,15 @@ struct SettingsRow: View {
     }
 }
 
-struct SettingsRow_Previews: PreviewProvider {
+struct TitleSubtitleRow_Previews: PreviewProvider {
     static var previews: some View {
         Form {
-            SettingsRow(title: "Preview")
-            SettingsRow(title: "Preview", showArrow: true)
-            SettingsRow(title: "Preview", subtitle: "Preview")
-            SettingsRow(title: "Preview", subtitle: "Preview", showArrow: true)
-            SettingsRow(systemName: "globe", title: "Preview", subtitle: "Preview")
-            SettingsRow(systemName: "globe", title: "Preview", subtitle: "Preview", showArrow: true)
+            TitleSubtitleRow(title: "Preview")
+            TitleSubtitleRow(title: "Preview", showArrow: true)
+            TitleSubtitleRow(title: "Preview", subtitle: "Preview")
+            TitleSubtitleRow(title: "Preview", subtitle: "Preview", showArrow: true)
+            TitleSubtitleRow(systemName: "globe", title: "Preview", subtitle: "Preview")
+            TitleSubtitleRow(systemName: "globe", title: "Preview", subtitle: "Preview", showArrow: true)
         }
     }
 }

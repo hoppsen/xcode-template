@@ -14,7 +14,7 @@
 		1FAC1FB22A6AF4830083E64C /* TemplateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAC1FB12A6AF4830083E64C /* TemplateApp.swift */; };
 		1FAC1FB62A6AF4840083E64C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FAC1FB52A6AF4840083E64C /* Assets.xcassets */; };
 		1FAC1FBA2A6AF4840083E64C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FAC1FB92A6AF4840083E64C /* Preview Assets.xcassets */; };
-		1FAC1FD42A6B042C0083E64C /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAC1FD32A6B042C0083E64C /* SettingsRow.swift */; };
+		1FAC1FD42A6B042C0083E64C /* TitleSubtitleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAC1FD32A6B042C0083E64C /* TitleSubtitleRow.swift */; };
 		1FAC1FD52A6B04440083E64C /* ChevronView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAC1FD22A6B040C0083E64C /* ChevronView.swift */; };
 		1FAC1FD72A6B04AE0083E64C /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FAC1FD62A6B04AE0083E64C /* Colors.swift */; };
 		1FAC1FD92A6B05B10083E64C /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1FAC1FD82A6B05B10083E64C /* Colors.xcassets */; };
@@ -58,7 +58,7 @@
 		1FAC1FB72A6AF4840083E64C /* Template.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Template.entitlements; sourceTree = "<group>"; };
 		1FAC1FB92A6AF4840083E64C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1FAC1FD22A6B040C0083E64C /* ChevronView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronView.swift; sourceTree = "<group>"; };
-		1FAC1FD32A6B042C0083E64C /* SettingsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
+		1FAC1FD32A6B042C0083E64C /* TitleSubtitleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TitleSubtitleRow.swift; sourceTree = "<group>"; };
 		1FAC1FD62A6B04AE0083E64C /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		1FAC1FD82A6B05B10083E64C /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		1FAC1FDB2A6B05F80083E64C /* AboutViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewModel.swift; sourceTree = "<group>"; };
@@ -179,7 +179,7 @@
 			children = (
 				1FAC1FD22A6B040C0083E64C /* ChevronView.swift */,
 				1FAC1FEB2A6B0BDC0083E64C /* README.md */,
-				1FAC1FD32A6B042C0083E64C /* SettingsRow.swift */,
+				1FAC1FD32A6B042C0083E64C /* TitleSubtitleRow.swift */,
 				1FAC1FDD2A6B063C0083E64C /* SFSafariView.swift */,
 				1FAC1FDF2A6B06520083E64C /* ShareSheetView.swift */,
 			);
@@ -467,7 +467,7 @@
 				1FAC1FD52A6B04440083E64C /* ChevronView.swift in Sources */,
 				1FAC1FD72A6B04AE0083E64C /* Colors.swift in Sources */,
 				1FAC1FE52A6B08580083E64C /* Globals.swift in Sources */,
-				1FAC1FD42A6B042C0083E64C /* SettingsRow.swift in Sources */,
+				1FAC1FD42A6B042C0083E64C /* TitleSubtitleRow.swift in Sources */,
 				1FAC1FDE2A6B063C0083E64C /* SFSafariView.swift in Sources */,
 				1FAC1FE02A6B06520083E64C /* ShareSheetView.swift in Sources */,
 				1FAC1FB22A6AF4830083E64C /* TemplateApp.swift in Sources */,
