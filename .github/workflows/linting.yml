@@ -12,7 +12,7 @@ on: pull_request
 jobs:
   SwiftLint:
     runs-on: ubuntu-20.04
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v2
       - name: Read version from Mintfile
@@ -41,7 +41,7 @@ jobs:
           LINUX_SOURCEKIT_LIB_PATH: /usr/share/swift/usr/lib # FIXED: Fatal error: Loading libsourcekitdInProc.so failed
   SwiftFormat:
     runs-on: ubuntu-20.04
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v2
       - name: Read version from Mintfile

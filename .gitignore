@@ -124,6 +124,7 @@ fastlane/test_output
 fastlane/build_output
 fastlane/output
 fastlane/derivedData
+fastlane/sourcePackages
 
 # Code Injection
 #

@@ -59,6 +59,8 @@ def rename_project(oldName, newName)
   # Search and Replace occurences of <oldName>
   sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../README.md")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/Fastfile")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/.env.stg")
+  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/.env.prd")
   sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../hooks/pre-commit")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../scripts/generate-swiftlint-filelist.sh")
   sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/project.pbxproj")
