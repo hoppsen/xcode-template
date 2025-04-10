@@ -18,7 +18,7 @@ class AboutViewModel: ObservableObject {
 
     @Published var activeSheet: ActiveSheet?
 
-    func openTwitter() {
+    @MainActor func openTwitter() {
         let application = UIApplication.shared
         if let appURL = URL(string: MainConstants.twitterDeepLink), application.canOpenURL(appURL) {
             application.open(appURL)

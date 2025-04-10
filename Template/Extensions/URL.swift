@@ -17,7 +17,7 @@ extension URL {
     }
 
     /// Opens given URL after validating whether it can be opened.
-    @discardableResult
+    @MainActor @discardableResult
     func open() -> Bool {
         guard UIApplication.shared.canOpenURL(self) else {
             return false
