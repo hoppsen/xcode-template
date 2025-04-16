@@ -1,6 +1,12 @@
 name: Linting
 
-on: pull_request
+on:
+  pull_request:
+
+  # Running on main ensures a cache is available for PRs to reuse
+  push:
+    branches:
+      - main
 
 # GitHub Action cannot handle this if this workflow is required
 # paths:
