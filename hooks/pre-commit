@@ -3,9 +3,11 @@
 # echo "[PRE-COMMIT] Format Ruby files"
 # bundle exec rufo .
 
-FILES_REFORMATTED=0
+SWIFTFORMAT_REFORMATTED=0
+SWIFTLINT_REFORMATTED=0
+SWIFTLINT_VIOLATIONS=0
 
-echo "[PRE-COMMIT] Linting files"
+echo "[PRE-COMMIT] Linting files:\n"
 GIT_DIFF=$(git diff --diff-filter=d --staged --name-only)
 
 while read FILE; do
@@ -26,19 +28,39 @@ while read FILE; do
         # export PATH to find mint
         export PATH="/opt/homebrew/bin:$PATH"
 
+        # SwiftFormat
         BEFORE_SWIFTFORMAT_CHECKSUM=$(cat "$FILE" | shasum)
         mint run swiftformat "${FILE}" --config .swiftformat &> /dev/null
         AFTER_SWIFTFORMAT_CHECKSUM=$(cat "$FILE" | shasum)
 
         if [[ "$BEFORE_SWIFTFORMAT_CHECKSUM" != "$AFTER_SWIFTFORMAT_CHECKSUM" ]]; then
-            echo "[PRE-COMMIT] [Warning] $FILE reformatted automatically. Please review, stage and commit"
-            ((FILES_REFORMATTED++))
+            echo "[PRE-COMMIT] [Warning] SwiftFormat reformatted $FILE. Please review, stage and commit."
+            ((SWIFTFORMAT_REFORMATTED++))
         fi
-    fi  
+
+        # SwiftLint autocorrect
+        BEFORE_SWIFTLINT_CHECKSUM=$(cat "$FILE" | shasum)
+        mint run swiftlint autocorrect --config .swiftlint.yml --quiet "${FILE}" &> /dev/null
+        AFTER_SWIFTLINT_CHECKSUM=$(cat "$FILE" | shasum)
+
+        if [[ "$BEFORE_SWIFTLINT_CHECKSUM" != "$AFTER_SWIFTLINT_CHECKSUM" ]]; then
+            echo "[PRE-COMMIT] [Warning] SwiftLint autocorrected $FILE. Please review, stage and commit."
+            ((SWIFTLINT_REFORMATTED++))
+        fi
+
+        # SwiftLint check for non-correctable issues
+        mint run swiftlint lint "${FILE}" --config .swiftlint.yml --quiet --strict --reporter emoji
+        if [[ $? -ne 0 ]]; then
+            ((SWIFTLINT_VIOLATIONS++))
+        fi
+    fi
 done <<< "$GIT_DIFF"
 
-if [[ "$FILES_REFORMATTED" -gt 0 ]]; then
-	exit 1
+if [[ "$SWIFTFORMAT_REFORMATTED" -gt 0 || "$SWIFTLINT_REFORMATTED" -gt 0 || "$SWIFTLINT_VIOLATIONS" -gt 0 ]]; then
+    echo "\nSwiftFormat reformatted files: $SWIFTFORMAT_REFORMATTED"
+    echo "SwiftLint autocorrected files: $SWIFTLINT_REFORMATTED"
+    echo "SwiftLint violations: $SWIFTLINT_VIOLATIONS"
+    exit 1
 fi
 
 exit 0
