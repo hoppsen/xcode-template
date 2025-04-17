@@ -271,8 +271,8 @@
 			buildConfigurationList = 1FAC1FBD2A6AF4840083E64C /* Build configuration list for PBXNativeTarget "Template" */;
 			buildPhases = (
 				1F9E0E912A717167006CD009 /* Gather Open Source Licenses */,
-				1F65A1DD2A71538500FBA141 /* SwiftLint */,
 				1FAC1FAA2A6AF4830083E64C /* Sources */,
+				1F65A1DD2A71538500FBA141 /* SwiftLint */,
 				1FAC1FAB2A6AF4830083E64C /* Frameworks */,
 				1FAC1FAC2A6AF4830083E64C /* Resources */,
 			);
@@ -377,7 +377,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Don't run this during index builds \nif [ $ACTION = \"indexbuild\" ]; then echo 'Index build detected.'; exit 0; fi\n\n# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\n# Don't run during SwiftUI previews, to prevent `Preview paused`.\nif [ $ENABLE_PREVIEWS = 'YES' ]; then echo 'Preview detected.'; exit 0; fi\n\nexport PATH=\"$PATH:/opt/homebrew/bin\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$(SRCROOT)|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
+			shellScript = "# Don't run this during index builds \nif [ $ACTION = \"indexbuild\" ]; then echo 'Index build detected.'; exit 0; fi\n\n# Don't run this during CI builds.\nif [ $CI = 'TRUE' ]; then echo 'CI detected.'; exit 0; fi\n\n# Don't run during SwiftUI previews, to prevent `Preview paused`.\nif [ $ENABLE_PREVIEWS = 'YES' ]; then echo 'Preview detected.'; exit 0; fi\n\nexport PATH=\"/opt/homebrew/bin:$PATH\" # Adds support for Apple Silicon brew directory.\nif mint which swiftlint; then\n    mint run swiftlint $(sed \"s|\\$(SRCROOT)|$SRCROOT|g\" $SCRIPT_INPUT_FILE_LIST_0)\nelse\n  echo 'warning: SwiftLint not installed, please run ´bundle exec fastlane setup´ to install it via brew.'\nfi\n";
 		};
 		1F65A1FD2A7169CA00FBA141 /* SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
