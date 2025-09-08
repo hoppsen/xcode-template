@@ -33,8 +33,36 @@ end
 
 ##### Rename #####
 
+def ensure_project_was_renamed
+  if File.exist?('../Template.xcodeproj')
+    UI.error("Rename the project first: bundle exec fastlane rename new_name:YourAppName")
+    raise "BLOCKED: Project still named 'Template'"
+  end
+end
+
 def rename_project(oldName, newName)
+  UI.header('Step: rename_project')
+
+  # Remove spaces from new name to avoid issues with file paths and bundle identifiers
+  newName = newName.gsub(/\s+/, '')
+  UI.message("Renaming project from '#{oldName}' to '#{newName}'")
+
   # Rename folders and files
+  # .github/workflows
+  # sh("sed -i '' 's|#{oldName}|#{newName}|g' ../.github/workflows/build.yml")
+  # sh("sed -i '' 's|#{oldName}|#{newName}|g' ../.github/workflows/releasing.yml")
+
+  # Fastlane
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/.env")
+  sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/.env")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/.env.prd")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/.env.stg")
+  sh("sed -i '' 's|#{oldName}/Assets|#{newName}/Assets|g' ../fastlane/Definitionsfile")
+  # sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/Deliverfile")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/Fastfile")
+  # sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/Matchfile")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/Setupfile")
+
   # Project file
   sh("mv ../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{oldName}.xcscheme ../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
   sh("mv ../#{oldName}.xcodeproj ../#{newName}.xcodeproj")
@@ -56,18 +84,32 @@ def rename_project(oldName, newName)
   sh("mv ../#{newName}UITests/#{oldName}UITestsLaunchTests.swift ../#{newName}UITests/#{newName}UITestsLaunchTests.swift")
   sh("rm -rf ../#{oldName}UITests")
 
-  # Search and Replace occurences of <oldName>
-  sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../README.md")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/Fastfile")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/.env.stg")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../fastlane/.env.prd")
-  sh("sed -i '' 's/#{oldName}.xcodeproj/#{newName}.xcodeproj/g' ../hooks/pre-commit")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../scripts/generate-swiftlint-filelist.sh")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/project.pbxproj")
-  sh("sed -i '' 's/#{oldName}/#{newName}/g' ../#{newName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
+  # Search and Replace occurrences of <oldName>
+  sh("sed -i '' 's|#{oldName}.xcodeproj|#{newName}.xcodeproj|g' ../README.md")
+  sh("sed -i '' 's|#{oldName}.xcodeproj|#{newName}.xcodeproj|g' ../hooks/pre-commit")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../#{newName}/Info.plist")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../scripts/generate-swiftlint-filelist.sh")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../#{newName}.xcodeproj/project.pbxproj")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../#{newName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
 
-  sh("find ../#{newName}* -name '*.swift' -print0 | xargs -0 sed -i '' 's/#{oldName}/#{newName}/g'")
+  sh("find ../#{newName}* -name '*.swift' -print0 | xargs -0 sed -i '' 's|#{oldName}|#{newName}|g'")
 
   # Remove build phases results to prevent compile issues with SwiftLint file lists
   sh("rm -rf ../.build/build_phases")
+end
+
+def update_marketing_version(new_name)
+  UI.header('Step: update_marketing_version')
+
+  # Set the default version number to <year>.<week>.0 using ISO week number whenever the project is renamed.
+  current_date = Time.new
+  year = current_date.strftime("%G")
+  week = current_date.strftime("%-V")
+  patch = 0
+  version_number = "#{year}.#{week}.#{patch}"
+
+  # Replace MARKETING_VERSION = 1.0; with the computed version in the project file
+  project_file = File.expand_path("../#{new_name}.xcodeproj/project.pbxproj")
+  UI.message("Setting MARKETING_VERSION to `#{version_number}` in `#{project_file}`")
+  sh("sed -i '' -E 's/(MARKETING_VERSION = )1\\.0;/\\1#{version_number};/g' \"#{project_file}\"")
 end

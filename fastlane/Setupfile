@@ -97,6 +97,8 @@ platform :ios do
   desc ' * **`ssh`**: Set to `true`, if you are currently not using SSH. Defaults to `false`'
   desc ' * **`clean`**: Set to `true`, if you want to clean all provisioning profiles. Defaults to `false`'
   lane :setup do |options|
+    ensure_project_was_renamed
+
     setup_git
 
     if options[:ssh] || false
@@ -109,15 +111,6 @@ platform :ios do
     clean_provisioning_profiles(clean)
   end
 
-  desc 'Renames the project including all occurences of `Template` to a new name of your choice.'
-  desc '#### Example:'
-  desc "```\nbundle exec fastlane rename new_name:Tahdith\n```"
-  desc '#### Options:'
-  desc ' * **`new_name`**: New project name of your choice.'
-  lane :rename do |options|
-    rename_project("Template", options[:new_name])
-  end
-
   desc 'Updates the status bar of all booted simulators.'
   desc '#### Example:'
   desc "```\nbundle exec fastlane simulator\n```"
@@ -128,5 +121,17 @@ platform :ios do
     for device in devices
       sh("xcrun simctl status_bar \"#{device}\" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --operatorName 'Hoppsen' --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100")
     end
+  end
+
+  desc 'Renames the project including all occurences of `Template` to a new name of your choice.'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane rename new_name:Tahdith\n```"
+  desc '#### Options:'
+  desc ' * **`new_name`**: New project name of your choice.'
+  lane :rename do |options|
+    new_name = options[:new_name]
+    rename_project("Template", new_name)
+
+    update_marketing_version(new_name)
   end
 end
