@@ -1,0 +1,15 @@
+git_url("git@github.com:hoppsen/certificates.git")
+git_branch('main')
+
+team_id('XXXXXXXXXX') # <- CHANGE
+
+storage_mode("git")
+
+app_identifier(["com.hoppsen.template"]) # <- CHANGE
+
+username('apple@example.com') # Not needed, as we are relying on the API key.
+
+# For all available options run `fastlane match --help`
+# Remove the # in the beginning of the line to enable the other options
+
+# The docs are available on https://docs.fastlane.tools/actions/match

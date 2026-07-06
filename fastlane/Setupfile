@@ -30,7 +30,7 @@ def setup_ssh
     "AddKeysToAgent yes\n\t" \
     "IdentityFile #{filename}\n"
 
-    sh("ssh-keygen -t ecdsa -f #{filename} -C #{ENV['USER']}@hoppsen.com")
+    sh("ssh-keygen -t ed25519 -f #{filename} -C #{ENV['USER']}@hoppsen.com")
     sh("ssh-add -K #{filename}")
     sh("ssh-keyscan -H github.com >> #{sshKnownHosts}", log: false)
     sh("echo \"#{config}\" >> #{sshConfig}", log: false)
@@ -76,7 +76,9 @@ def setup_brew
     UI.user_error!('You need to install homebrew first! Please follow the install instructions on the just opened webpage.')
   end
 
-  sh('brew install python') # macOS 12.3 doesn't come with python pre-installed :/
+  sh('brew install python') # Used by scripts/credits.py
+
+  sh('brew install peripheryapp/periphery/periphery') # Dead-code scanning
 
   sh('brew install mint')
   sh('mint bootstrap --mintfile ../Mintfile')
@@ -95,6 +97,7 @@ platform :ios do
   desc "```\nbundle exec fastlane setup\n```"
   desc '#### Options:'
   desc ' * **`ssh`**: Set to `true`, if you are currently not using SSH. Defaults to `false`'
+  desc ' * **`renew`**: Set to `true`, if you want to regenerate (!) all certificates and provisioning profiles with sync_code_signing (alias match). Defaults to `false`'
   desc ' * **`clean`**: Set to `true`, if you want to clean all provisioning profiles. Defaults to `false`'
   lane :setup do |options|
     ensure_project_was_renamed
@@ -107,8 +110,88 @@ platform :ios do
 
     setup_brew
 
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: PROJECT,
+    )
+
     clean = options[:clean] || false
     clean_provisioning_profiles(clean)
+
+    renew = options[:renew] || false
+    sync_code_signing(
+      type: 'development',
+      force: renew,
+      readonly: !renew,
+    )
+  end
+
+  desc 'Run this to install the code signing certificates'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane codeSigning type:appstore\n```"
+  desc '#### Options:'
+  desc " * **`type`**: Specify the type you want to syncronize the certificates for. Defaults to 'appstore'"
+  desc ' * **`renew`**: Set to `true`, if you want to regenerate (!) all certificates and provisioning profiles with sync_code_signing (alias match). Defaults to `false`'
+  desc ' * **`code_signing_identity`**: Specify the code signing identity you want to use. Defaults to `Apple Distribution`'
+  lane :codeSigning do |options|
+    ensure_project_was_renamed
+
+    app_store_connect_api_key(
+      key_id: "CHANGE_ME_ASC_KEY_ID", # <- CHANGE
+      issuer_id: "CHANGE_ME_ASC_ISSUER_ID", # <- CHANGE
+      key_filepath: File.expand_path('~/Developer/AuthKey_CHANGE_ME_ASC_KEY_ID.p8'), # <- CHANGE Put the file into your Developer folder.
+    ) unless is_ci
+
+    type = options[:type] || 'appstore'
+    renew = options[:renew] || false
+    code_signing_identity = options[:code_signing_identity] || 'Apple Distribution'
+
+    # Installs the specified certificates and profiles from the storage
+    sync_code_signing(
+      type: type,
+      force: renew,
+      readonly: !renew,
+      clone_branch_directly: true,
+    )
+
+    # sync_code_signing is not changing the project itself, therefore we need to set the profiles and certificates for each target manually
+    update_project_provisioning(
+      xcodeproj: PROJECT,
+      profile: ENV["sigh_#{ENV['APP_IDENTIFIER']}_#{type}_profile-path"],
+      target_filter: '^Template(Staging)?$',
+      code_signing_identity: code_signing_identity, # Only updates CODE_SIGN_IDENTITY of the target not the whole project
+    )
+    # update_project_provisioning(
+    #   xcodeproj: PROJECT,
+    #   profile: ENV["sigh_#{ENV['APP_IDENTIFIER']}.WidgetExtension_#{type}_profile-path"],
+    #   target_filter: '^WidgetExtensionExtension$',
+    #   code_signing_identity: code_signing_identity,
+    # )
+  end
+
+  desc "Register a new device to Hoppsen's App Store Connect account. You might want to renew the provisioning profiles by using the :setup or :codeSigning lane."
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane registerDevice name:\"Firstname Lastname - iPhone 15 Pro\"\" udid:<udid>\n```"
+  desc '#### Options:'
+  desc " * **`name`**: The name of the device: \"<Firstname> <Lastname> - <Model>\""
+  desc ' * **`udid`**: The UDID of the device you want to add'
+  lane :registerDevice do |options|
+    app_store_connect_api_key(
+      key_id: "CHANGE_ME_ASC_KEY_ID", # <- CHANGE
+      issuer_id: "CHANGE_ME_ASC_ISSUER_ID", # <- CHANGE
+      key_filepath: File.expand_path('~/Developer/AuthKey_CHANGE_ME_ASC_KEY_ID.p8'), # <- CHANGE Put the file into your Developer folder.
+    ) unless is_ci
+
+    register_devices(
+      devices: {
+        "Hoppsen - #{options[:name]}" => options[:udid],
+      },
+    )
+
+    setup(
+      renew: true,
+      clean: true,
+    ) if HighLine.agree('Are you done registering new devices? (y|n)')
   end
 
   desc 'Updates the status bar of all booted simulators.'
@@ -117,13 +200,13 @@ platform :ios do
   desc '#### Options:'
   desc ' * **`devices`**: Array of simulators to update.'
   lane :simulator do |options|
-    devices = options[:devices] || ['iPhone 13 Pro Max', 'iPhone 8 Plus', 'iPad Pro (12.9-inch) (5th generation)', 'iPad Pro (12.9-inch) (2nd generation)', 'booted']
+    devices = options[:devices] || ['iPhone 15 Pro Max', 'iPhone 8 Plus', 'booted']
     for device in devices
       sh("xcrun simctl status_bar \"#{device}\" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --operatorName 'Hoppsen' --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100")
     end
   end
 
-  desc 'Renames the project including all occurences of `Template` to a new name of your choice.'
+  desc 'Renames the project including all occurrences of `Template` to a new name of your choice.'
   desc '#### Example:'
   desc "```\nbundle exec fastlane rename new_name:Tahdith\n```"
   desc '#### Options:'
@@ -131,6 +214,12 @@ platform :ios do
   lane :rename do |options|
     new_name = options[:new_name]
     rename_project("Template", new_name)
+
+    update_app_identifier(
+      xcodeproj: "#{new_name}.xcodeproj",
+      plist_path: "#{new_name}/Info.plist",
+      app_identifier: "com.hoppsen.#{new_name.downcase}"
+    )
 
     update_marketing_version(new_name)
   end

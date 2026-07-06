@@ -33,25 +33,51 @@ bundle exec fastlane setup
 
  * **`ssh`**: Set to `true`, if you are currently not using SSH. Defaults to `false`
 
+ * **`renew`**: Set to `true`, if you want to regenerate (!) all certificates and provisioning profiles with sync_code_signing (alias match). Defaults to `false`
+
  * **`clean`**: Set to `true`, if you want to clean all provisioning profiles. Defaults to `false`
 
-### ios rename
+### ios codeSigning
 
 ```sh
-[bundle exec] fastlane ios rename
+[bundle exec] fastlane ios codeSigning
 ```
 
-Renames the project including all occurences of `Template` to a new name of your choice.
+Run this to install the code signing certificates
 
 #### Example:
 
 ```
-bundle exec fastlane rename new_name:Tahdith
+bundle exec fastlane codeSigning type:appstore
 ```
 
 #### Options:
 
- * **`new_name`**: New project name of your choice.
+ * **`type`**: Specify the type you want to syncronize the certificates for. Defaults to 'appstore'
+
+ * **`renew`**: Set to `true`, if you want to regenerate (!) all certificates and provisioning profiles with sync_code_signing (alias match). Defaults to `false`
+
+ * **`code_signing_identity`**: Specify the code signing identity you want to use. Defaults to `Apple Distribution`
+
+### ios registerDevice
+
+```sh
+[bundle exec] fastlane ios registerDevice
+```
+
+Register a new device to Hoppsen's App Store Connect account. You might want to renew the provisioning profiles by using the :setup or :codeSigning lane.
+
+#### Example:
+
+```
+bundle exec fastlane registerDevice name:"Firstname Lastname - iPhone 15 Pro"" udid:<udid>
+```
+
+#### Options:
+
+ * **`name`**: The name of the device: "<Firstname> <Lastname> - <Model>"
+
+ * **`udid`**: The UDID of the device you want to add
 
 ### ios simulator
 
@@ -70,6 +96,24 @@ bundle exec fastlane simulator
 #### Options:
 
  * **`devices`**: Array of simulators to update.
+
+### ios rename
+
+```sh
+[bundle exec] fastlane ios rename
+```
+
+Renames the project including all occurrences of `Template` to a new name of your choice.
+
+#### Example:
+
+```
+bundle exec fastlane rename new_name:Tahdith
+```
+
+#### Options:
+
+ * **`new_name`**: New project name of your choice.
 
 ### ios lint
 
@@ -116,6 +160,98 @@ Generates the Asset enum out of Assets.xcassets. For IMAGES only!
 ```
 bundle exec fastlane assets
 ```
+
+### ios updateVersion
+
+```sh
+[bundle exec] fastlane ios updateVersion
+```
+
+Updates version number
+
+#### Example:
+
+```
+bundle exec fastlane updateVersion
+```
+
+#### Options:
+
+ * **`patch_number`**: Patch number to be appended to the version number in the following format: <year>.<week>.<patch> Defaults to `0`. Increments the patch number if the current week is the same as the latest production version.
+
+### ios build
+
+```sh
+[bundle exec] fastlane ios build
+```
+
+Runs build action
+
+#### Example:
+
+```
+bundle exec fastlane build build_number:42 --env stg
+```
+
+#### Options:
+
+ * **`build_number`**: The build number to use. Defaults to the build number stored on `https://increment.build`.
+
+### ios test
+
+```sh
+[bundle exec] fastlane ios test
+```
+
+Runs tests
+
+#### Example:
+
+```
+bundle exec fastlane test --env stg
+```
+
+### ios deploy
+
+```sh
+[bundle exec] fastlane ios deploy
+```
+
+Uploads the given file to TestFlight.
+
+#### Example:
+
+```
+bundle exec fastlane deploy --env stg
+```
+
+#### Options:
+
+ * **`changelog`**: The changelog to be used for this build.
+
+#### Warning:
+
+Adding a changelog makes the build wait for TestFlight processing to update the changelog, which results in 7.5min waiting time.
+
+### ios upload_metadata
+
+```sh
+[bundle exec] fastlane ios upload_metadata
+```
+
+Uploads metadata to App Store Connect and optionally creates a new version.
+
+#### Example:
+
+```
+bundle exec fastlane upload_metadata version_number:2024.52.0 build_number:666 --env prd
+```
+
+#### Options:
+
+ * **`version_number`**: The version number to use.
+
+ * **`build_number`**: The build number to use.
 
 ----
 

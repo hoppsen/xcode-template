@@ -11,8 +11,8 @@ renamed apps.
   data flow, folder, or significant feature.
 - The template is intentionally lean: a modern `@Observable` SwiftUI app skeleton, a reusable
   component/extension/utility toolkit, a Settings/Support screen pair, Home Screen quick actions,
-  and a full fastlane + GitHub Actions build/release pipeline. It ships **no** third-party SDKs —
-  add analytics, monetization, or attribution per app as needed.
+  and a full fastlane + GitHub Actions build/release pipeline. It has no third-party dependencies;
+  add whatever your app needs.
 
 ## Working agreements
 

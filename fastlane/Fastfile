@@ -1,5 +1,5 @@
-ruby_version '3.0.0'
-fastlane_version '2.221.0'
+ruby_version '3.3.0'
+fastlane_version '2.225.0'
 default_platform(:ios)
 
 import 'Setupfile'
@@ -8,7 +8,6 @@ import 'Definitionsfile'
 # Global constants, which are not changing based on app or environment.
 # For anything else please use Dotenv, such as `.env.stg` or `.env.prd` files.
 PROJECT = 'Template.xcodeproj'
-ASSETS_PATH = File.expand_path('../Template/Assets')
 OUTPUT_DIRECTORY = File.expand_path('../fastlane/output')
 DERIVED_DATA_PATH = File.expand_path('../fastlane/derivedData')
 SOURCE_PACKAGES_PATH = File.expand_path('../fastlane/sourcePackages')
@@ -16,10 +15,37 @@ SOURCE_PACKAGES_PATH = File.expand_path('../fastlane/sourcePackages')
 platform :ios do
   before_all do |lane|
     ensure_bundle_exec
+
+    # Ensures the keychain exists before calling setup_jenkins
+    create_keychain(
+      name: ENV['MATCH_KEYCHAIN_NAME'],
+      password: ENV['MATCH_KEYCHAIN_PASSWORD'],
+      default_keychain: false,
+      unlock: true,
+      timeout: 0,
+      add_to_search_list: true,
+    ) if is_ci
+
+    # Sets up any CI/CD environment, regardless of the provider
+    setup_jenkins(
+      output_directory: OUTPUT_DIRECTORY,
+      derived_data_path: DERIVED_DATA_PATH,
+      unlock_keychain: true,
+      keychain_path: ENV['MATCH_KEYCHAIN_NAME'],
+      keychain_password: ENV['MATCH_KEYCHAIN_PASSWORD'],
+      set_default_keychain: false,
+    )
   end
 
   error do |lane, exception, options|
     UI.error("Options: #{options.inspect}")
+
+    if is_ci
+      UI.error("ENV:")
+      ENV.each do |key, value|
+        UI.error("#{key}=#{value}")
+      end
+    end
   end
 
   # MARK: - Lint and Format
@@ -60,5 +86,179 @@ platform :ios do
     if UI.confirm('You are about to generate the Assets.swift file. Remember that this is for IMAGES ONLY! Icons should be added as custom SF symbols in Symbols.xcassets. Are you sure you added only images to Assets.xcassets?')
       generate_assets_enum
     end
+  end
+
+  # MARK: - Build
+
+  desc 'Updates version number'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane updateVersion\n```"
+  desc '#### Options:'
+  desc ' * **`patch_number`**: Patch number to be appended to the version number in the following format: <year>.<week>.<patch> Defaults to `0`. Increments the patch number if the current week is the same as the latest production version.'
+  lane :updateVersion do |options|
+    current_date = Time.new
+    year = current_date.strftime("%G") # To retrieve the ISO 8601 year corresponding to the week number for potential year change issues.
+    week = current_date.strftime("%-V") # - removes leading 0
+
+    begin
+      # Fetch the latest production version
+      latest_version = get_app_store_version_number(bundle_id: ENV['APP_IDENTIFIER'], country: 'us')
+      latest_year, latest_week, latest_patch = latest_version.split('.').map(&:to_i)
+      UI.message("Latest production version: #{latest_version}")
+
+      if latest_year.to_s == year && latest_week.to_s == week
+        # We're still in the same week as the latest production version
+        patch = [options[:patch_number].to_i, latest_patch + 1].max
+        UI.important("We're still in the same week as the latest production version, using the maximum patch version: #{patch}")
+      else
+        # If it's a new week, start with patch 0 or use the provided patch number
+        patch = options[:patch_number] || 0
+      end
+    rescue => e
+      UI.important("Error fetching latest version from App Store: (#{e.message}). Using default versioning.")
+      # If we can't fetch the version (e.g., app not released yet), use provided patch or 0
+      patch = options[:patch_number] || 0
+    end
+
+    version_number = "#{year}.#{week}.#{patch}"
+
+    # Export the version number to the GitHub Actions environment
+    export_to_github_env('VERSION_NUMBER', version_number)
+
+    increment_version_number(
+      version_number: version_number,
+      xcodeproj: PROJECT,
+    )
+  end
+
+  desc 'Runs build action'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane build build_number:42 --env stg\n```"
+  desc '#### Options:'
+  desc ' * **`build_number`**: The build number to use. Defaults to the build number stored on `https://increment.build`.'
+  lane :build do |options|
+    codeSigning(
+      type: 'appstore',
+      code_signing_identity: 'Apple Distribution',
+    )
+
+    increment_build_number(
+      build_number: options[:build_number] || fetch_and_increment_build_number,
+    )
+
+    # Change app icon if needed
+    allowedAppIconTags = ['STG']
+    if allowedAppIconTags.include?(ENV['APP_ICON_TAG'])
+      update_app_icon(ENV['APP_ICON_TAG'])
+    end
+
+    build_ios_app(
+      project: PROJECT,
+      scheme: ENV['SCHEME'],
+      output_directory: OUTPUT_DIRECTORY,
+      output_name: ENV['GYM_OUTPUT_NAME'],
+      export_method: 'app-store',
+      derived_data_path: DERIVED_DATA_PATH,
+      suppress_xcode_output: true,
+      analyze_build_time: true,
+      skip_profile_detection: true,
+      cloned_source_packages_path: SOURCE_PACKAGES_PATH,
+      skip_package_dependencies_resolution: ENV['SPM_CACHE_RESTORED'] == 'true', # Checking for == `true` as the value can also be `inexact`
+      disable_package_automatic_updates: true,
+    )
+
+    reset_git_repo(
+      files: [PROJECT, "Template/Assets/Assets.xcassets/"],
+      force: true,
+    )
+  end
+
+  desc 'Runs tests'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane test --env stg\n```"
+  lane :test do
+    run_tests(
+      project: PROJECT,
+      scheme: ENV['SCHEME'],
+      prelaunch_simulator: true,
+      output_directory: OUTPUT_DIRECTORY,
+      suppress_xcode_output: true,
+      derived_data_path: DERIVED_DATA_PATH,
+      result_bundle: true,
+      skip_slack: true,
+      cloned_source_packages_path: SOURCE_PACKAGES_PATH,
+      skip_package_dependencies_resolution: ENV['SPM_CACHE_RESTORED'] == 'true', # Checking for == `true` as the value can also be `inexact`
+      disable_package_automatic_updates: true,
+      xcargs: '-skipMacroValidation',
+    )
+  end
+
+  desc 'Uploads the given file to TestFlight.'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane deploy --env stg\n```"
+  desc '#### Options:'
+  desc ' * **`changelog`**: The changelog to be used for this build.'
+  desc '#### Warning:'
+  desc 'Adding a changelog makes the build wait for TestFlight processing to update the changelog, which results in 7.5min waiting time.'
+  lane :deploy do |options|
+    api_key = app_store_connect_api_key(
+      key_id: ENV['APP_STORE_CONNECT_API_KEY_KEY_ID'],
+      issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
+      key_content: ENV['APP_STORE_CONNECT_API_KEY_KEY'],
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      app_identifier: ENV['APP_IDENTIFIER'],
+      ipa: "#{OUTPUT_DIRECTORY}/#{ENV['GYM_OUTPUT_NAME']}",
+      changelog: ENV['PILOT_CHANGELOG'] || options[:changelog],
+      skip_waiting_for_build_processing: ENV['PILOT_SKIP_WAITING_FOR_BUILD_PROCESSING'],
+      distribute_external: ENV['PILOT_DISTRIBUTE_EXTERNAL'],
+      notify_external_testers: ENV['PILOT_NOTIFY_DISTRIBUTE_EXTERNAL'],
+      groups: ENV['PILOT_GROUPS'],
+      reject_build_waiting_for_review: ENV['PILOT_REJECT_BUILD_WAITING_FOR_REVIEW'],
+      submit_beta_review: ENV['PILOT_SUBMIT_BETA_REVIEW'],
+    )
+  end
+
+  desc 'Uploads metadata to App Store Connect and optionally creates a new version.'
+  desc '#### Example:'
+  desc "```\nbundle exec fastlane upload_metadata version_number:2024.52.0 build_number:666 --env prd\n```"
+  desc '#### Options:'
+  desc ' * **`version_number`**: The version number to use.'
+  desc ' * **`build_number`**: The build number to use.'
+  lane :upload_metadata do |options|
+    api_key = if is_ci
+      app_store_connect_api_key(
+        key_id: ENV['APP_STORE_CONNECT_API_KEY_KEY_ID'],
+        issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
+        key_content: ENV['APP_STORE_CONNECT_API_KEY_KEY'],
+      )
+    else
+      app_store_connect_api_key(
+        key_id: "CHANGE_ME_ASC_KEY_ID", # <- CHANGE
+        issuer_id: "CHANGE_ME_ASC_ISSUER_ID", # <- CHANGE
+        key_filepath: File.expand_path('~/Developer/AuthKey_CHANGE_ME_ASC_KEY_ID.p8'), # <- CHANGE Put the file into your Developer folder.
+      )
+    end
+
+    version_number = options[:version_number] || get_version_number(xcodeproj: PROJECT, target: ENV['SCHEME'])
+
+    upload_to_app_store(
+      api_key: api_key,
+      app_identifier: ENV['APP_IDENTIFIER'],
+      app_version: version_number,
+      build_number: options[:build_number],
+      platform: 'ios',
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      force: true,
+      submit_for_review: false,
+      reject_if_possible: true,
+      automatic_release: false,
+      copyright: "#{Date.today.year} CHANGE_ME_LEGAL_ENTITY", # <- CHANGE
+      precheck_include_in_app_purchases: false,
+    )
   end
 end

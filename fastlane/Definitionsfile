@@ -1,34 +1,95 @@
-##### General #####
+##### App Icon #####
 
-def is_installed?(tool)
-  begin
-    sh("which #{tool}")
-    return true
-  rescue
-    UI.error("'#{tool}' not found!\nPlease make sure '#{tool}' exists.")
-    return false
-  end
-end
+def update_app_icon(tag)
+  UI.header('Step: update_app_icon')
 
-def file_contains_regexp?(filename, regexp)
-  File.foreach(filename) do |line|
-    return true if line =~ regexp
+  appIconPath = File.expand_path("../Template/Assets/AppIcon.icon")
+  appIconSetPath = File.expand_path("../Template/Assets/Assets.xcassets/AppIcon.appiconset")
+  newAppIconPath = File.expand_path("../fastlane/assets/AppIcon-#{tag}.icon")
+  newAppIconSetPath = File.expand_path("../fastlane/assets/AppIcon-#{tag}.appiconset")
+
+  UI.message('Replacing icon...')
+
+  # Handle .icon file
+  if File.exist?(newAppIconPath)
+    sh("rm -rf #{appIconPath}")
+    sh("mv #{newAppIconPath} #{appIconPath}")
+  else
+    UI.message("New .icon not found: #{newAppIconPath}")
   end
-  return false
+
+  # Handle .appiconset independently
+  if File.exist?(newAppIconSetPath)
+    sh("rm -rf #{appIconSetPath}")
+    sh("mv #{newAppIconSetPath} #{appIconSetPath}")
+  else
+    UI.message("New .appiconset not found: #{newAppIconSetPath}")
+  end
 end
 
 ##### SwiftGen #####
 
-def generate_localization_enum
-  strings = "#{LOCALIZATION_PATH}/en.lproj"
-  output = "#{LOCALIZATION_PATH}/L10n.swift"
-  sh("mint run swiftgen run strings #{strings} --output #{output} --templateName flat-swift5")
+def generate_assets_enum
+  assetsPath = File.expand_path('../Template/Assets')
+  xcassets = "#{assetsPath}/Assets.xcassets"
+  output = "#{assetsPath}/Assets.swift"
+  sh("mint run swiftgen run xcassets #{xcassets} --output #{output} --templateName swift5")
 end
 
-def generate_assets_enum
-  xcassets = "#{ASSETS_PATH}/Assets.xcassets"
-  output = "#{ASSETS_PATH}/Assets.swift"
-  sh("mint run swiftgen run xcassets #{xcassets} --output #{output} --templateName swift5")
+##### Version and Build Number #####
+
+def export_to_github_env(key, value)
+  UI.header('Step: export_to_github_env')
+
+  github_env_file = ENV['GITHUB_ENV']
+  if github_env_file && File.exist?(github_env_file)
+    begin
+      File.open(github_env_file, 'a') do |file|
+        file.puts("#{key}=#{value}")
+      end
+      UI.message("Successfully wrote #{key}=#{value} to GITHUB_ENV file.")
+    rescue => e
+      UI.important("Warning: Failed to write to GITHUB_ENV file: #{e.message}")
+    end
+  else
+    UI.important("Warning: GITHUB_ENV environment variable is not set or the file does not exist. Skipping export.")
+  end
+end
+
+def fetch_and_increment_build_number
+  UI.header('Step: fetch_and_increment_build_number')
+
+  # Get bundle identifier from environment variable
+  bundle_id = ENV['APP_IDENTIFIER']
+  if bundle_id.nil? || bundle_id.empty?
+    UI.error("APP_IDENTIFIER environment variable is required but not set")
+    raise "APP_IDENTIFIER environment variable must be set"
+  end
+
+  # Generate SHA-256 hash of the bundle identifier
+  require 'digest'
+  hash = Digest::SHA256.hexdigest(bundle_id)
+
+  UI.message("Using bundle identifier: #{bundle_id}")
+  UI.message("Generated hash: #{hash}")
+
+  # https://increment.build/<id>  id = SHA-256 hash of the string "<bundle_id>"
+  uri = URI.parse("https://increment.build/#{hash}")
+  response = Net::HTTP.get_response(uri)
+
+  if response.is_a?(Net::HTTPSuccess)
+    build_number = response.body.strip
+    if build_number =~ /^\d+$/
+      # Export the build number to the GitHub Actions environment
+      export_to_github_env('BUILD_NUMBER', build_number)
+
+      return build_number
+    else
+      raise "Invalid build number format received"
+    end
+  else
+    raise "Failed to fetch build number"
+  end
 end
 
 ##### Rename #####
@@ -49,8 +110,8 @@ def rename_project(oldName, newName)
 
   # Rename folders and files
   # .github/workflows
-  # sh("sed -i '' 's|#{oldName}|#{newName}|g' ../.github/workflows/build.yml")
-  # sh("sed -i '' 's|#{oldName}|#{newName}|g' ../.github/workflows/releasing.yml")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../.github/workflows/build.yml")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../.github/workflows/releasing.yml")
 
   # Fastlane
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/.env")
@@ -58,13 +119,14 @@ def rename_project(oldName, newName)
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/.env.prd")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/.env.stg")
   sh("sed -i '' 's|#{oldName}/Assets|#{newName}/Assets|g' ../fastlane/Definitionsfile")
-  # sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/Deliverfile")
+  sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/Deliverfile")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/Fastfile")
-  # sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/Matchfile")
+  sh("sed -i '' 's|#{oldName.downcase}|#{newName.downcase}|g' ../fastlane/Matchfile")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../fastlane/Setupfile")
 
   # Project file
   sh("mv ../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{oldName}.xcscheme ../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
+  sh("mv \"../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{oldName} Staging.xcscheme\" \"../#{oldName}.xcodeproj/xcshareddata/xcschemes/#{newName} Staging.xcscheme\"")
   sh("mv ../#{oldName}.xcodeproj ../#{newName}.xcodeproj")
 
   ## Template
@@ -85,17 +147,23 @@ def rename_project(oldName, newName)
   sh("rm -rf ../#{oldName}UITests")
 
   # Search and Replace occurrences of <oldName>
+  # CLAUDE.md is optional in this public template; only rewrite it if present.
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' ../CLAUDE.md") if File.exist?('../CLAUDE.md')
   sh("sed -i '' 's|#{oldName}.xcodeproj|#{newName}.xcodeproj|g' ../README.md")
   sh("sed -i '' 's|#{oldName}.xcodeproj|#{newName}.xcodeproj|g' ../hooks/pre-commit")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../#{newName}/Info.plist")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../scripts/generate-swiftlint-filelist.sh")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../#{newName}.xcodeproj/project.pbxproj")
   sh("sed -i '' 's|#{oldName}|#{newName}|g' ../#{newName}.xcodeproj/xcshareddata/xcschemes/#{newName}.xcscheme")
+  sh("sed -i '' 's|#{oldName}|#{newName}|g' \"../#{newName}.xcodeproj/xcshareddata/xcschemes/#{newName} Staging.xcscheme\"")
 
   sh("find ../#{newName}* -name '*.swift' -print0 | xargs -0 sed -i '' 's|#{oldName}|#{newName}|g'")
 
   # Remove build phases results to prevent compile issues with SwiftLint file lists
   sh("rm -rf ../.build/build_phases")
+
+  # Keep SwiftLint exclude in sync: rename only the exact Assets.swift path (do not touch '- templates')
+  sh("sed -i '' 's|#{oldName}/Assets/Assets.swift|#{newName}/Assets/Assets.swift|g' ../.swiftlint.yml")
 end
 
 def update_marketing_version(new_name)
