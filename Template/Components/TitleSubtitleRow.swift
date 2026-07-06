@@ -1,40 +1,41 @@
-//
-//  TitleSubtitleRow.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 21.07.23.
-//
-
 import SwiftUI
 
 struct TitleSubtitleRow: View {
     let systemName: String?
-    let title: String
+    let title: Text
     let subtitle: String?
     let showArrow: Bool
+    let imageGradient: [Color]
 
-    init(systemName: String? = nil, title: String, subtitle: String? = nil, showArrow: Bool = false) {
+    init(systemName: String? = nil,
+         title: LocalizedStringResource,
+         subtitle: String? = nil,
+         showArrow: Bool = false,
+         imageGradient: [Color] = []) {
         self.systemName = systemName
-        self.title = title
+        self.title = Text(title)
         self.subtitle = subtitle
         self.showArrow = showArrow
+        self.imageGradient = imageGradient
+    }
+
+    init(systemName: String? = nil,
+         verbatimTitle: String,
+         subtitle: String? = nil,
+         showArrow: Bool = false,
+         imageGradient: [Color] = []) {
+        self.systemName = systemName
+        title = Text(verbatim: verbatimTitle)
+        self.subtitle = subtitle
+        self.showArrow = showArrow
+        self.imageGradient = imageGradient
     }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            if let systemName = systemName {
-                Label(title, systemImage: systemName)
-            } else {
-                Text(title)
-            }
-
-            Spacer()
-
-            if let subtitle = subtitle {
-                Text(subtitle)
-                    .foregroundColor(.secondary)
-            }
-
+        TitleSubtitleRowWithContent(systemName: systemName,
+                                    title: title,
+                                    subtitle: subtitle,
+                                    imageGradient: imageGradient) {
             if showArrow {
                 Spacer()
                     .frame(width: 12)
@@ -45,15 +46,58 @@ struct TitleSubtitleRow: View {
     }
 }
 
-struct TitleSubtitleRow_Previews: PreviewProvider {
-    static var previews: some View {
-        Form {
-            TitleSubtitleRow(title: "Preview")
-            TitleSubtitleRow(title: "Preview", showArrow: true)
-            TitleSubtitleRow(title: "Preview", subtitle: "Preview")
-            TitleSubtitleRow(title: "Preview", subtitle: "Preview", showArrow: true)
-            TitleSubtitleRow(systemName: "globe", title: "Preview", subtitle: "Preview")
-            TitleSubtitleRow(systemName: "globe", title: "Preview", subtitle: "Preview", showArrow: true)
+struct TitleSubtitleRowWithContent<Content: View>: View {
+    let systemName: String?
+    let title: Text
+    let subtitle: String?
+    let imageGradient: [Color]
+    @ViewBuilder var content: () -> Content
+
+    init(systemName: String? = nil,
+         title: Text,
+         subtitle: String? = nil,
+         imageGradient: [Color] = [],
+         @ViewBuilder content: @escaping () -> Content) {
+        self.systemName = systemName
+        self.title = title
+        self.subtitle = subtitle
+        self.imageGradient = imageGradient
+        self.content = content
+    }
+
+    var body: some View {
+        HStack {
+            Group {
+                if let systemName {
+                    Label {
+                        title
+                    } icon: {
+                        if !imageGradient.isEmpty {
+                            Image(systemName: systemName)
+                                .foregroundStyle(LinearGradient(colors: imageGradient,
+                                                                startPoint: .topLeading,
+                                                                endPoint: .bottomTrailing))
+                        } else {
+                            Image(systemName: systemName)
+                        }
+                    }
+                } else {
+                    title
+                }
+            }
+            .layoutPriority(1)
+
+            Spacer()
+
+            if let subtitle {
+                Text(subtitle)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+
+            content()
         }
+        .truncationMode(.middle)
     }
 }

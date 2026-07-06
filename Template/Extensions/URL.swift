@@ -1,10 +1,3 @@
-//
-//  URL.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 21.07.23.
-//
-
 import UIKit
 
 extension URL {
@@ -24,19 +17,5 @@ extension URL {
         }
         UIApplication.shared.open(self, options: [:]) { _ in }
         return true
-    }
-
-    // MARK: - Static URLs
-
-    static var website: URL? {
-        URL(string: "https://www.hoppsen.com")
-    }
-
-    static var termsOfUse: URL? {
-        URL(string: "https://www.hoppsen.com")
-    }
-
-    static var privacyPolicy: URL? {
-        URL(string: "https://www.hoppsen.com")
     }
 }

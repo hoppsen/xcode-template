@@ -1,10 +1,3 @@
-//
-//  TemplateUITests.swift
-//  TemplateUITests
-//
-//  Created by Marcel Hoppe on 26.07.23.
-//
-
 import XCTest
 
 final class TemplateUITests: XCTestCase {

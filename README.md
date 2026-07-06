@@ -16,10 +16,10 @@ My favorite Xcode project structure, plus SwiftLint and SwiftFormat pre-configur
     ruby --version
     ```
 
-    Ideally it show you something like this (Required: `>= 2.7.0`):
+    Ideally it show you something like this (Required: `>= 3.3.0`):
 
     ```sh
-    ruby 3.1.1p18 (2022-02-18 revision 53f5fc4236) [arm64-darwin22]
+    ruby 3.3.0 (2023-12-25 revision 5124f9ac75) [arm64-darwin23]
     ```
 
     > Check the [Troubleshooting Guide](https://github.com/hoppsen/xcode-template/wiki/Troubleshooting-Guide#how-to-fix-your-ruby-version) to fix your Ruby version.
@@ -46,21 +46,23 @@ My favorite Xcode project structure, plus SwiftLint and SwiftFormat pre-configur
     bundle install
     ```
 
-7. Run our guided setup script.
-
-    ```sh
-    bundle exec fastlane setup
-    ```
-
-8. (Optional) Rename the whole project to a name of your choice.
+7. Rename the whole project to a name of your choice.
 
     ```sh
     bundle exec fastlane rename new_name:Hoppsen
     ```
 
-9. Open `Template.xcodeproj` (or new name if renamed before)
+8. Validate all name changes within Git
 
-10. Start coding :rocket:
+9. Run our guided setup script.
+
+    ```sh
+    bundle exec fastlane setup
+    ```
+
+10. Open `Template.xcodeproj`
+
+11. Start coding :rocket:
 
 ---
 

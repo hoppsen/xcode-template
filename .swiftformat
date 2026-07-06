@@ -1,9 +1,12 @@
 # file options
 
---exclude Pods,**/.build,**/Package.swift,vendor/bundle,scripts,fastlane,**/L10n.swift,**/Assets.swift,**/*.generated.swift
+--exclude Pods,**/.build,**/Package.swift,vendor/bundle,scripts,fastlane,**/L10n.swift,**/Assets.swift,**/*.generated.swift,**/Backport.swift
 
 # format options
 --swiftversion 5.5
+
+## fileHeader
+--header strip
 
 ## elseOnSameLine
 --guardelse same-line

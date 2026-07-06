@@ -1,10 +1,3 @@
-//
-//  SFSafariView.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 19.01.22.
-//
-
 import SafariServices
 import SwiftUI
 

@@ -1,10 +1,3 @@
-//
-//  Colors.swift
-//  Template
-//
-// Created by Marcel Hoppe on 21.07.23.
-//
-
 import SwiftUI
 #if os(macOS)
     import AppKit

@@ -1,0 +1,132 @@
+name: Release Monitor
+
+on:
+  # Disabled until the first release is created
+  # schedule:
+  #   - cron: '0 * * * *'  # Run every hour
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+  APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+  APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY }}
+  APP_STORE_APP_ID: ${{ vars.APP_STORE_APP_ID }} # <- CHANGE this to the app ID of the app you want to monitor
+
+jobs:
+  app-store-release-monitor:
+    runs-on: ubuntu-latest
+    # Block execution in template repositories
+    if: ${{ !contains(github.repository, 'template') }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install jsonwebtoken
+        run: npm install jsonwebtoken
+
+      - name: Check App Store Version
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.HOPPSEN_BOT_TOKEN }}
+          script: |
+            const jwt = require('./node_modules/jsonwebtoken');
+
+            function generateToken() {
+              const privateKey = process.env.APP_STORE_CONNECT_API_KEY_KEY.replace(/\\n/g, '\n');
+              return jwt.sign({
+                iss: process.env.APP_STORE_CONNECT_API_KEY_ISSUER_ID,
+                exp: Math.floor(Date.now() / 1000) + (20 * 60), // 20 minutes
+                aud: 'appstoreconnect-v1'
+              }, privateKey, {
+                algorithm: 'ES256',
+                header: {
+                  kid: process.env.APP_STORE_CONNECT_API_KEY_KEY_ID
+                }
+              });
+            }
+
+            async function getLatestAppStoreVersion() {
+              const token = generateToken();
+
+              console.log('::group::Version API Response');
+              const versionResponse = await fetch(
+                `https://api.appstoreconnect.apple.com/v1/apps/${process.env.APP_STORE_APP_ID}/appStoreVersions?filter[platform]=IOS&filter[appStoreState]=READY_FOR_SALE`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              const versionData = await versionResponse.json();
+              if (!versionResponse.ok) {
+                throw new Error(`Version API request failed: ${JSON.stringify(versionData)}`);
+              }
+
+              console.log(JSON.stringify(versionData.data[0], null, 2));
+              console.log('::endgroup::');
+
+              if (!versionData.data || !versionData.data[0]) {
+                throw new Error('No version data found');
+              }
+
+              // Get the build URL from relationships
+              const buildUrl = versionData.data[0].relationships.build.links.related;
+
+              // Get the build info
+              const buildResponse = await fetch(buildUrl, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              const buildData = await buildResponse.json();
+              if (!buildResponse.ok) {
+                throw new Error(`Build API request failed: ${JSON.stringify(buildData)}`);
+              }
+
+              console.log('::group::Build API Response');
+              console.log(JSON.stringify(buildData, null, 2));
+              console.log('::endgroup::');
+
+              return {
+                version: versionData.data[0].attributes.versionString,
+                buildNumber: buildData.data.attributes.version
+              };
+            }
+
+            try {
+              const appInfo = await getLatestAppStoreVersion();
+              const tagName = `${appInfo.version}-${appInfo.buildNumber}`;
+
+              // Check if release already exists
+              try {
+                await github.rest.repos.getReleaseByTag({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag: tagName
+                });
+                console.log(`Release ${tagName} already exists, skipping creation`);
+                return;
+              } catch (e) {
+                // Release doesn't exist, create it
+                console.log(`Creating new release for ${tagName}`);
+
+                // Create release with auto-generated notes
+                await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: tagName,
+                  name: `${tagName}`,
+                  generate_release_notes: true
+                });
+
+                console.log(`Successfully created release for version ${tagName}`);
+              }
+            } catch (error) {
+              core.setFailed(`Release creation failed: ${error.message}`);
+            }

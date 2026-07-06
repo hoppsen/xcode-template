@@ -6,6 +6,10 @@ excluded: # paths to ignore during linting. Takes precedence over `included`.
   - BuildTools
   - fastlane
   - templates
+  - Template/Assets/Assets.swift
+large_tuple:
+  warning: 3
+  error: 5
 line_length: 160
 identifier_name:
   allowed_symbols:

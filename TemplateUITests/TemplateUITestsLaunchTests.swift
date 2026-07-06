@@ -1,14 +1,7 @@
-//
-//  TemplateUITestsLaunchTests.swift
-//  TemplateUITests
-//
-//  Created by Marcel Hoppe on 26.07.23.
-//
-
 import XCTest
 
 final class TemplateUITestsLaunchTests: XCTestCase {
-    override class var runsForEachTargetApplicationUIConfiguration: Bool {
+    override static var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }
 
