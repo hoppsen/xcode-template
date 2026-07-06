@@ -1,10 +1,3 @@
-//
-//  ShareSheetView.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 21.07.23.
-//
-
 import SwiftUI
 import UIKit
 
@@ -29,7 +22,11 @@ struct ShareSheetView: UIViewControllerRepresentable {
     func makeUIViewController(context _: Context) -> UIActivityViewController {
         let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
         controller.excludedActivityTypes = excludedActivityTypes
-        controller.completionWithItemsHandler = callback
+
+        controller.completionWithItemsHandler = { activityType, completed, returnedItems, error in
+            callback?(activityType, completed, returnedItems, error)
+        }
+
         return controller
     }
 

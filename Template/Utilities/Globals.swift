@@ -1,10 +1,3 @@
-//
-//  Globals.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 21.07.23.
-//
-
 import UIKit
 
 typealias Completion = () -> Void
@@ -17,9 +10,12 @@ struct MainConstants {
     static let appStoreLink = "https://apps.apple.com/app/<company>/\(appId)" // <- CHANGE
     static let appStoreDeepLink = "itms-apps://apple.com/app/\(appId)"
 
-    // MARK: - Twitter
+    // MARK: - Legal URLs
 
-    static let twitterUsername = "hoppsen1" // <- CHANGE
-    static let twitterLink = "https://twitter.com/\(twitterUsername)"
-    static let twitterDeepLink = "twitter://user?screen_name=\(twitterUsername)"
+    static let termsOfServiceLink = "https://example.com/terms" // <- CHANGE
+    static let privacyPolicyLink = "https://example.com/privacy" // <- CHANGE
+
+    // MARK: - Support
+
+    static let supportEmail = "support@example.com" // <- CHANGE
 }

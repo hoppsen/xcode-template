@@ -1,10 +1,3 @@
-//
-//  ChevronView.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 21.07.23.
-//
-
 import SwiftUI
 
 struct ChevronView: View {

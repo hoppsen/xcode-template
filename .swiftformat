@@ -5,6 +5,9 @@
 # format options
 --swiftversion 5.5
 
+## fileHeader
+--header strip
+
 ## elseOnSameLine
 --guardelse same-line
 

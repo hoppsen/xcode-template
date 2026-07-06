@@ -1,15 +1,8 @@
-//
-//  UIApplication.swift
-//  Template
-//
-//  Created by Marcel Hoppe on 21.07.23.
-//
-
 import UIKit
 
 extension UIApplication {
     /// Opens settings within system settings.
-    class func openSystemSettings() {
+    class func openSystemAppSettings() {
         URL(string: UIApplication.openSettingsURLString)?.open()
     }
 
