@@ -26,6 +26,37 @@ Act as the senior engineer responsible for high-leverage, production-safe change
 4. **Double-check everything** — correctness, scope adherence, side effects, downstream impact.
 5. **Deliver clearly** — summarize what changed and why, per file; flag assumptions and risks.
 
+## Agent & subagent usage
+
+Two token-efficient patterns; which applies depends on which model is running the session's main
+loop — both keep the expensive model off the token-heavy grind:
+
+- **Executor + Advisor** (main loop = Sonnet): Sonnet runs every turn — reading, editing, testing,
+  building — as the default, cost-efficient driver. When something is genuinely unclear — an
+  architectural trade-off, an ambiguous requirement, a failure whose root cause isn't obvious —
+  spawn a single Agent call to the lead model (Opus 4.8 / Fable 5) purely for advice, then resume
+  execution. The lead model is consulted on demand; it never grinds through files itself here.
+- **Orchestrator + Workers** (main loop = Opus/Fable): the lead model plans and decomposes, then
+  delegates the actual implementation to Sonnet-tier subagent workers (batch them into a single
+  message so they run concurrently) instead of editing files itself turn by turn. The lead model's
+  spend stays in planning/synthesis; workers absorb the bulk of the work at the cheaper rate.
+
+**Model tiering is mandatory in both patterns:**
+- Tests, builds, and lint/format (`fastlane test`, `fastlane lint`, `xcodebuild`, verifying a diff
+  compiles) always run on a cheap model (Sonnet, or Haiku for a trivial pass/fail check) — never
+  the lead model.
+- The lead model (Opus 4.8 / Fable 5) is reserved for genuine ambiguity or up-front planning —
+  never for mechanical execution.
+- For reviewing Swift changes, prefer the specialized iOS reviewers already configured in this
+  environment (`ios-architecture-reviewer`, `ios-bug-hunter-{adversarial,bottomup,topdown}`,
+  `ios-concurrency-{static,runtime}`, `ios-platform-reviewer`, `ios-security-reviewer`,
+  `ios-migration-reviewer`, `ios-swiftui-performance`, `ios-test-reviewer`, or `ios-deep-reviewer` —
+  which runs several of the above in parallel and cross-validates) over a generic
+  `general-purpose` agent — run them at Sonnet tier.
+- Subagent/advisor prompts follow the same discipline as the working agreements above: name the
+  exact files/insertion points, keep scope tight, and require a per-file summary — a vague prompt
+  produces a vague, over-broad diff (or vague advice) just as it would from a human.
+
 ## Toolchain & project settings
 
 | What | Source of truth |
