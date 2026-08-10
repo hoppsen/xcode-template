@@ -276,7 +276,8 @@ Workflows (`.github/workflows/`):
 - `releasing.yml` — manual dispatch (stg/prd): `updateVersion` → `build` → `deploy` → git tag
   `<version>-<build>` → `upload_metadata`.
 - `releaseMonitor.yml` — hourly App Store poll, creates a GitHub Release on `READY_FOR_SALE`
-  (enable the schedule after the first release; set the `APP_STORE_APP_ID` repo var).
+  (self-arming: skips until the repo has its first release tag; set the `APP_STORE_APP_ID`
+  repo var).
 
 Build/release workflows are skipped while the repository name contains "template".
 
@@ -292,4 +293,5 @@ Build/release workflows are skipped while the repository name contains "template
    shared UserDefaults suite.
 4. GitHub repo: configure Actions secrets/vars used by the workflows (App Store Connect API key
    trio, `MATCH_*`, the bot SSH key/token, Slack channel ids) and branch protection on `main`.
-5. After the first App Store release: enable the `releaseMonitor.yml` schedule.
+5. Set the `APP_STORE_APP_ID` repo var once the app exists in App Store Connect —
+   `releaseMonitor.yml` arms itself automatically after the first release tag is pushed.
